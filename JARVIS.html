@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#000000">
+<title>JARVIS</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+:root {
+  --blue: #4fc3f7;
+  --blue-bright: #80d8ff;
+  --blue-dim: #1a6b8a;
+  --green: #4cff8a;
+  --amber: #ffb347;
+  --red: #ff4444;
+}
+body {
+  background: #000;
+  color: #fff;
+  font-family: 'Share Tech Mono', monospace;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* HEADER */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 18px 11px;
+  border-bottom: 1px solid #0a0a0a;
+  flex-shrink: 0;
+}
+.title {
+  font-family: 'Orbitron', monospace;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 8px;
+  color: var(--blue-bright);
+  text-shadow: 0 0 24px rgba(128,216,255,0.5);
+}
+.header-right { display:flex; align-items:center; gap:10px; }
+.online-dot {
+  width:7px; height:7px; border-radius:50%;
+  background:var(--blue); box-shadow:0 0 8px var(--blue);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+.setup-btn {
+  font-family:'Share Tech Mono',monospace; font-size:11px;
+  letter-spacing:2px; color:var(--blue-dim); background:none;
+  border:1px solid #111; padding:5px 10px; border-radius:4px; cursor:pointer;
+  transition:all .2s;
+}
+.setup-btn:hover { border-color:var(--blue-dim); color:var(--blue); }
+
+/* NAV */
+.nav { display:flex; border-bottom:1px solid #0d0d0d; flex-shrink:0; }
+.nav-tab {
+  flex:1; padding:9px 4px; text-align:center; font-size:9px;
+  letter-spacing:1.5px; color:#2a2a2a; cursor:pointer;
+  border-bottom:2px solid transparent; transition:all .2s; user-select:none;
+}
+.nav-tab.active { color:var(--blue); border-bottom-color:var(--blue); text-shadow:0 0 8px var(--blue); }
+.nav-tab:hover:not(.active) { color:#444; }
+
+/* VIEWS */
+.view { display:none; flex:1; overflow:hidden; flex-direction:column; }
+.view.active { display:flex; }
+
+/* CHAT */
+.chat-body {
+  flex:1; overflow-y:auto; display:flex; flex-direction:column;
+  scroll-behavior:smooth;
+}
+.chat-body::-webkit-scrollbar { width:2px; }
+.chat-body::-webkit-scrollbar-thumb { background:#111; border-radius:2px; }
+
+/* ATOM HERO */
+.atom-hero {
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:center; padding:36px 20px 20px; flex-shrink:0;
+}
+.atom-wrap { position:relative; width:160px; height:160px; margin-bottom:12px; }
+.atom-glow {
+  position:absolute; top:50%; left:50%;
+  width:200px; height:200px; border-radius:50%;
+  margin:-100px 0 0 -100px;
+  background:radial-gradient(circle, rgba(79,195,247,0.07) 0%, transparent 70%);
+  animation:glowPulse 3s ease-in-out infinite; pointer-events:none;
+}
+@keyframes glowPulse { 0%,100%{transform:scale(1);opacity:.5;} 50%{transform:scale(1.2);opacity:1;} }
+.nucleus {
+  position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  width:18px; height:18px; border-radius:50%;
+  background:radial-gradient(circle, #fff 0%, var(--blue-bright) 40%, var(--blue) 100%);
+  box-shadow:0 0 12px var(--blue-bright), 0 0 28px var(--blue), 0 0 55px rgba(79,195,247,0.4);
+  z-index:5; animation:nucPulse 2s ease-in-out infinite;
+}
+@keyframes nucPulse {
+  0%,100%{box-shadow:0 0 12px var(--blue-bright),0 0 28px var(--blue),0 0 55px rgba(79,195,247,0.4);}
+  50%{box-shadow:0 0 20px var(--blue-bright),0 0 45px var(--blue),0 0 90px rgba(79,195,247,0.6);}
+}
+.orbit {
+  position:absolute; top:50%; left:50%;
+  border-radius:50%; border:1px solid rgba(79,195,247,0.2);
+}
+.orbit-1 { width:72px; height:72px; margin:-36px 0 0 -36px; animation:spin1 2.8s linear infinite; border-color:rgba(79,195,247,0.45); }
+.orbit-2 { width:114px; height:114px; margin:-57px 0 0 -57px; animation:spin2 4.5s linear infinite; }
+.orbit-3 { width:152px; height:152px; margin:-76px 0 0 -76px; animation:spin3 6.5s linear infinite; }
+@keyframes spin1 { from{transform:rotate(0);} to{transform:rotate(360deg);} }
+@keyframes spin2 { from{transform:rotate(55deg);} to{transform:rotate(415deg);} }
+@keyframes spin3 { from{transform:rotate(-40deg);} to{transform:rotate(320deg);} }
+.electron {
+  position:absolute; width:7px; height:7px; border-radius:50%;
+  background:var(--blue-bright);
+  box-shadow:0 0 8px var(--blue-bright), 0 0 16px var(--blue);
+  top:-3.5px; left:calc(50% - 3.5px);
+}
+.particle {
+  position:absolute; width:3px; height:3px; border-radius:50%;
+  background:var(--blue); opacity:0;
+  animation:pFloat 4s ease-in-out infinite;
+}
+.p1{top:18%;left:8%;animation-delay:0s;}
+.p2{top:72%;left:86%;animation-delay:1s;}
+.p3{top:12%;left:78%;animation-delay:2s;}
+.p4{top:82%;left:18%;animation-delay:3s;}
+.p5{top:48%;left:4%;animation-delay:1.5s;}
+.p6{top:38%;left:92%;animation-delay:2.5s;}
+@keyframes pFloat {
+  0%{opacity:0;transform:translateY(0) scale(0);}
+  30%{opacity:.8;transform:translateY(-8px) scale(1);}
+  70%{opacity:.4;transform:translateY(-18px) scale(.8);}
+  100%{opacity:0;transform:translateY(-28px) scale(0);}
+}
+.atom-status { font-size:10px; letter-spacing:3px; color:var(--blue-dim); }
+
+/* AGENT BADGE shown above messages */
+.agent-badge {
+  display:inline-block; font-size:9px; letter-spacing:2px;
+  padding:2px 8px; border-radius:3px; margin-bottom:5px;
+}
+.badge-jarvis { background:rgba(79,195,247,0.08); color:var(--blue-dim); border:1px solid #0d1a22; }
+.badge-trader { background:rgba(76,255,138,0.06); color:#2a8a50; border:1px solid #0a1a10; }
+.badge-merchant { background:rgba(255,179,71,0.06); color:#8a6020; border:1px solid #1a1200; }
+.badge-creator { background:rgba(180,100,255,0.06); color:#6a3a8a; border:1px solid #120a1a; }
+.badge-researcher { background:rgba(79,195,247,0.06); color:#1a5a6a; border:1px solid #0a1518; }
+.badge-scout { background:rgba(255,100,100,0.06); color:#8a2a2a; border:1px solid #1a0a0a; }
+.badge-omega { background:rgba(255,255,255,0.04); color:#444; border:1px solid #111; }
+
+/* MESSAGES */
+.messages-list { padding:12px 16px 8px; display:flex; flex-direction:column; gap:12px; }
+.msg-user { display:flex; justify-content:flex-end; }
+.msg-user-bubble {
+  background:#090909; border:1px solid #181818;
+  border-radius:14px 14px 3px 14px; padding:9px 13px;
+  max-width:78%; font-size:13px; line-height:1.5; color:#bbb;
+}
+.msg-j { display:flex; gap:8px; align-items:flex-start; }
+.j-dot {
+  width:24px; height:24px; border-radius:50%;
+  border:1px solid var(--blue-dim);
+  background:radial-gradient(circle, rgba(79,195,247,0.15), transparent);
+  flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  font-size:8px; color:var(--blue); margin-top:18px;
+  box-shadow:0 0 8px rgba(79,195,247,0.15);
+}
+.j-content { flex:1; max-width:calc(100% - 32px); }
+.j-bubble {
+  background:#040404; border:1px solid #0e0e0e;
+  border-left:2px solid var(--blue-dim);
+  border-radius:3px 12px 12px 12px; padding:10px 13px;
+  font-size:13px; line-height:1.65; color:#999;
+}
+.j-bubble strong { color:var(--blue); font-weight:normal; }
+.j-bubble code { background:#0a0a0a; color:var(--blue); padding:1px 5px; border-radius:3px; font-size:11px; }
+.msg-sys { text-align:center; font-size:9px; letter-spacing:2px; color:#1e1e1e; padding:4px; }
+
+.typing-dots { display:flex; gap:4px; padding:8px 2px; align-items:center; }
+.td { width:5px; height:5px; border-radius:50%; background:var(--blue-dim); animation:tdB 1.2s ease-in-out infinite; }
+.td:nth-child(2){animation-delay:.2s;} .td:nth-child(3){animation-delay:.4s;}
+@keyframes tdB { 0%,100%{transform:translateY(0);opacity:.3;} 50%{transform:translateY(-5px);opacity:1;background:var(--blue);} }
+.msg-enter { animation:fadeUp .25s ease-out; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+
+/* AGENT SELECTOR STRIP */
+.agent-strip {
+  display:flex; gap:5px; padding:7px 14px 6px;
+  overflow-x:auto; scrollbar-width:none; flex-shrink:0;
+  border-bottom:1px solid #080808;
+}
+.agent-strip::-webkit-scrollbar{display:none;}
+.agent-pill {
+  font-size:9px; letter-spacing:1.5px; padding:4px 10px;
+  border-radius:20px; border:1px solid #111; color:#2a2a2a;
+  cursor:pointer; white-space:nowrap; transition:all .2s; flex-shrink:0;
+}
+.agent-pill.selected { border-color:var(--blue-dim); color:var(--blue); background:rgba(79,195,247,0.05); }
+.agent-pill:hover:not(.selected) { color:#444; border-color:#1a1a1a; }
+
+/* INPUT */
+.chat-input {
+  padding:10px 14px 12px; border-top:1px solid #080808;
+  display:flex; gap:8px; align-items:flex-end; flex-shrink:0;
+}
+.input-box {
+  flex:1; background:#060606; border:1px solid #0e0e0e;
+  border-radius:10px; padding:9px 12px; color:#bbb;
+  font-family:'Share Tech Mono',monospace; font-size:13px;
+  resize:none; outline:none; max-height:90px; line-height:1.5;
+  scrollbar-width:none; transition:border-color .2s;
+}
+.input-box:focus { border-color:var(--blue-dim); }
+.input-box::placeholder { color:#1e1e1e; }
+.input-box::-webkit-scrollbar{display:none;}
+.send-btn {
+  width:38px; height:38px; border-radius:10px;
+  background:var(--blue-dim); border:none; color:#000;
+  font-size:14px; cursor:pointer; display:flex;
+  align-items:center; justify-content:center; flex-shrink:0; transition:all .2s;
+}
+.send-btn:hover { background:var(--blue); box-shadow:0 0 12px rgba(79,195,247,0.35); }
+.send-btn:disabled { background:#0e0e0e; color:#222; cursor:not-allowed; box-shadow:none; }
+
+/* AGENTS VIEW */
+.agents-view { padding:14px; overflow-y:auto; }
+.agent-card {
+  background:#030303; border:1px solid #0d0d0d;
+  border-left:2px solid var(--blue-dim); border-radius:6px;
+  padding:12px 14px; margin-bottom:9px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.agent-card.locked { opacity:.35; }
+.agent-card-name { font-size:12px; letter-spacing:2px; color:var(--blue); margin-bottom:3px; }
+.agent-card-desc { font-size:10px; color:#252525; letter-spacing:1px; }
+.agent-card-right { display:flex; align-items:center; gap:8px; }
+.status-pill {
+  font-size:9px; letter-spacing:1px; padding:3px 8px;
+  border-radius:20px;
+}
+.s-active { color:var(--green); border:1px solid #0a2010; background:rgba(76,255,138,0.04); }
+.s-paper { color:var(--amber); border:1px solid #1a1000; background:rgba(255,179,71,0.04); }
+.s-standby { color:#2a2a2a; border:1px solid #111; }
+.s-locked { color:#1a1a1a; border:1px solid #0d0d0d; }
+.chat-agent-btn {
+  font-family:'Share Tech Mono',monospace; font-size:9px;
+  letter-spacing:1px; padding:4px 9px; border-radius:4px;
+  cursor:pointer; border:1px solid #111; background:none; color:#2a2a2a;
+  transition:all .2s;
+}
+.chat-agent-btn:hover { border-color:var(--blue-dim); color:var(--blue); }
+
+/* HISTORY VIEW */
+.history-view { padding:14px; overflow-y:auto; }
+.history-item {
+  background:#030303; border:1px solid #0a0a0a; border-radius:6px;
+  padding:10px 13px; cursor:pointer; transition:border-color .2s; margin-bottom:8px;
+}
+.history-item:hover { border-color:var(--blue-dim); }
+.history-q { font-size:12px; color:#444; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.history-a { font-size:10px; color:#1e1e1e; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.history-meta { display:flex; justify-content:space-between; margin-top:4px; }
+.history-time { font-size:9px; color:#141414; letter-spacing:1px; }
+.history-agent { font-size:9px; color:var(--blue-dim); letter-spacing:1px; }
+.empty-state { text-align:center; font-size:10px; color:#141414; letter-spacing:2px; padding:40px 20px; line-height:2; }
+
+/* TRADES VIEW */
+.trades-view { padding:14px; overflow-y:auto; }
+.trade-card {
+  background:#030303; border:1px solid #0d0d0d;
+  border-left:2px solid #0a2010; border-radius:6px;
+  padding:11px 13px; margin-bottom:8px;
+}
+.trade-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; }
+.trade-mode { font-size:9px; letter-spacing:2px; color:var(--amber); }
+.trade-time { font-size:9px; color:#141414; }
+.trade-signal { font-size:11px; color:#333; line-height:1.6; white-space:pre-wrap; }
+
+/* OVERLAY + SIDE PANEL */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:50; opacity:0; pointer-events:none; transition:opacity .3s; }
+.overlay.open { opacity:1; pointer-events:all; }
+.side-panel {
+  position:fixed; top:0; right:0; width:min(310px,90vw); height:100dvh;
+  background:#020202; border-left:1px solid #0d0d0d; z-index:60;
+  transform:translateX(100%); transition:transform .3s ease;
+  display:flex; flex-direction:column; overflow:hidden;
+}
+.side-panel.open { transform:translateX(0); }
+.panel-header {
+  padding:15px 16px 12px; border-bottom:1px solid #0a0a0a;
+  display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
+}
+.panel-title { font-family:'Orbitron',monospace; font-size:11px; letter-spacing:3px; color:var(--blue); }
+.close-x { background:none; border:none; color:#2a2a2a; font-size:18px; cursor:pointer; transition:color .2s; }
+.close-x:hover { color:#666; }
+.panel-body { flex:1; overflow-y:auto; padding:16px; scrollbar-width:none; }
+.panel-body::-webkit-scrollbar{display:none;}
+.p-section { margin-bottom:22px; }
+.p-section-title { font-size:9px; letter-spacing:3px; color:var(--blue-dim); margin-bottom:10px; padding-bottom:5px; border-bottom:1px solid #0a0a0a; }
+.p-input {
+  width:100%; background:#070707; border:1px solid #0e0e0e;
+  border-radius:6px; padding:9px 12px; color:#777;
+  font-family:'Share Tech Mono',monospace; font-size:11px;
+  outline:none; margin-bottom:7px; transition:border-color .2s;
+}
+.p-input:focus { border-color:var(--blue-dim); }
+.p-input::placeholder { color:#1a1a1a; }
+.p-save {
+  width:100%; background:var(--blue-dim); border:none; border-radius:6px;
+  padding:11px; color:#000; font-family:'Orbitron',monospace;
+  font-size:10px; letter-spacing:3px; cursor:pointer; transition:all .2s;
+}
+.p-save:hover { background:var(--blue); }
+.p-danger {
+  width:100%; background:none; border:1px solid #1a0808; border-radius:6px;
+  padding:9px; color:#2a0808; font-family:'Share Tech Mono',monospace;
+  font-size:10px; letter-spacing:2px; cursor:pointer; transition:all .2s; margin-top:7px;
+}
+.p-danger:hover { border-color:#ff4444; color:#ff4444; }
+.p-label { font-size:9px; color:#1e1e1e; letter-spacing:1px; margin-bottom:5px; }
+
+/* Step guide */
+.step { display:flex; gap:10px; margin-bottom:13px; align-items:flex-start; }
+.step-num {
+  width:18px; height:18px; border-radius:50%; border:1px solid var(--blue-dim);
+  display:flex; align-items:center; justify-content:center;
+  font-size:9px; color:var(--blue-dim); flex-shrink:0; margin-top:1px;
+}
+.step-title { font-size:11px; color:#444; letter-spacing:1px; margin-bottom:2px; }
+.step-desc { font-size:10px; color:#1e1e1e; line-height:1.7; }
+.step-link { font-size:10px; color:var(--blue-dim); text-decoration:none; display:inline-block; margin-top:2px; }
+.step-link:hover { color:var(--blue); }
+
+.server-status {
+  background:#030303; border:1px solid #0a0a0a; border-radius:6px;
+  padding:10px 13px; margin-bottom:7px;
+}
+.server-status-row { display:flex; justify-content:space-between; align-items:center; }
+.server-url { font-size:10px; color:#333; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px; }
+.server-online { font-size:9px; color:var(--green); letter-spacing:1px; }
+.server-offline { font-size:9px; color:#2a2a2a; letter-spacing:1px; }
+</style>
+</head>
+<body>
+
+<div class="overlay" id="overlay" onclick="closePanel()"></div>
+
+<!-- SETUP PANEL -->
+<div class="side-panel" id="sidePanel">
+  <div class="panel-header">
+    <div class="panel-title">SYSTEM CONFIG</div>
+    <button class="close-x" onclick="closePanel()">×</button>
+  </div>
+  <div class="panel-body">
+
+    <div class="p-section">
+      <div class="p-section-title">// SERVER CONNECTION</div>
+      <div class="server-status">
+        <div class="server-status-row">
+          <div class="server-url" id="serverUrlDisplay">NOT CONNECTED</div>
+          <div class="server-offline" id="serverStatusLabel">OFFLINE</div>
+        </div>
+      </div>
+      <input class="p-input" type="text" id="backendUrl" placeholder="https://your-app.railway.app">
+      <button class="p-save" onclick="saveAndTest()">CONNECT</button>
+    </div>
+
+    <div class="p-section">
+      <div class="p-section-title">// YOUR IDENTITY</div>
+      <input class="p-input" type="text" id="userName" placeholder="Your name">
+      <button class="p-save" onclick="saveIdentity()">SAVE</button>
+      <button class="p-danger" onclick="clearAll()">WIPE ALL DATA</button>
+    </div>
+
+    <div class="p-section">
+      <div class="p-section-title">// STEP 1 — GITHUB (FREE)</div>
+      <div class="step">
+        <div class="step-num">1</div>
+        <div><div class="step-title">CREATE ACCOUNT</div><a class="step-link" href="https://github.com" target="_blank">github.com →</a></div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div><div class="step-title">NEW REPOSITORY</div><div class="step-desc">Name it "jarvis" → Public → Create</div></div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div><div class="step-title">UPLOAD 4 FILES</div><div class="step-desc">main.py · requirements.txt · Procfile · JARVIS.html</div></div>
+      </div>
+    </div>
+
+    <div class="p-section">
+      <div class="p-section-title">// STEP 2 — RAILWAY (FREE)</div>
+      <div class="step">
+        <div class="step-num">1</div>
+        <div><div class="step-title">CREATE ACCOUNT</div><a class="step-link" href="https://railway.app" target="_blank">railway.app →</a></div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div><div class="step-title">NEW PROJECT</div><div class="step-desc">Deploy from GitHub → select "jarvis" repo</div></div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div><div class="step-title">ADD ENV VARIABLE</div><div class="step-desc">Variables tab → add GEMINI_API_KEY → your key</div></div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div><div class="step-title">GET YOUR URL</div><div class="step-desc">Settings → Networking → Generate Domain → paste above</div></div>
+      </div>
+    </div>
+
+    <div class="p-section">
+      <div class="p-section-title">// STEP 3 — GEMINI KEY (FREE)</div>
+      <div class="step">
+        <div class="step-num">1</div>
+        <div><a class="step-link" href="https://aistudio.google.com" target="_blank">aistudio.google.com →</a></div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div><div class="step-title">GET API KEY</div><div class="step-desc">Sign in with Google → Get API Key → Create → Copy</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="title">JARVIS</div>
+  <div class="header-right">
+    <div class="online-dot" id="onlineDot"></div>
+    <button class="setup-btn" onclick="openPanel()">SETUP ›</button>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-tab active" id="tab-chat" onclick="switchTab('chat')">CHAT</div>
+  <div class="nav-tab" id="tab-agents" onclick="switchTab('agents')">AGENTS</div>
+  <div class="nav-tab" id="tab-trades" onclick="switchTab('trades')">TRADES</div>
+  <div class="nav-tab" id="tab-history" onclick="switchTab('history')">HISTORY</div>
+</div>
+
+<!-- CHAT VIEW -->
+<div class="view active" id="view-chat">
+  <div class="chat-body" id="chatBody">
+    <div class="atom-hero" id="atomHero">
+      <div style="position:relative;width:160px;height:160px;">
+        <div class="atom-glow"></div>
+        <div class="particle p1"></div><div class="particle p2"></div>
+        <div class="particle p3"></div><div class="particle p4"></div>
+        <div class="particle p5"></div><div class="particle p6"></div>
+        <div class="atom-wrap">
+          <div class="nucleus"></div>
+          <div class="orbit orbit-1"><div class="electron"></div></div>
+          <div class="orbit orbit-2"><div class="electron"></div></div>
+          <div class="orbit orbit-3"><div class="electron"></div></div>
+        </div>
+      </div>
+      <div class="atom-status" id="atomStatus">AWAITING CONNECTION</div>
+    </div>
+    <div class="messages-list" id="messagesList"></div>
+  </div>
+
+  <!-- AGENT SELECTOR -->
+  <div class="agent-strip">
+    <div class="agent-pill selected" id="pill-auto" onclick="selectAgent('auto')">AUTO</div>
+    <div class="agent-pill" id="pill-jarvis" onclick="selectAgent('jarvis')">JARVIS</div>
+    <div class="agent-pill" id="pill-trader" onclick="selectAgent('trader')">TRADER</div>
+    <div class="agent-pill" id="pill-merchant" onclick="selectAgent('merchant')">MERCHANT</div>
+    <div class="agent-pill" id="pill-creator" onclick="selectAgent('creator')">CREATOR</div>
+    <div class="agent-pill" id="pill-researcher" onclick="selectAgent('researcher')">RESEARCHER</div>
+    <div class="agent-pill" id="pill-scout" onclick="selectAgent('scout')">SCOUT</div>
+    <div class="agent-pill" id="pill-omega" onclick="selectAgent('omega')">OMEGA</div>
+  </div>
+
+  <div class="chat-input">
+    <textarea
+      class="input-box" id="inputBox"
+      placeholder="Command Jarvis..."
+      rows="1"
+      onkeydown="handleKey(event)"
+      oninput="autoResize(this)"
+    ></textarea>
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()">▶</button>
+  </div>
+</div>
+
+<!-- AGENTS VIEW -->
+<div class="view" id="view-agents">
+  <div class="agents-view" id="agentsView">
+    <div class="empty-state" id="agentsLoading">LOADING AGENT STATUS...</div>
+  </div>
+</div>
+
+<!-- TRADES VIEW -->
+<div class="view" id="view-trades">
+  <div class="trades-view" id="tradesView">
+    <div class="empty-state" id="tradesEmpty">NO SIGNALS YET<br>ASK TRADER TO ANALYZE GBPUSD OR GOLD</div>
+  </div>
+</div>
+
+<!-- HISTORY VIEW -->
+<div class="view" id="view-history">
+  <div class="history-view" id="historyView">
+    <div class="empty-state" id="historyEmpty">NO HISTORY YET</div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let conversationHistory = [];
+let selectedAgent = 'auto';
+let isThinking = false;
+let backendUrl = '';
+
+const AGENT_COLORS = {
+  jarvis: 'badge-jarvis', trader: 'badge-trader',
+  merchant: 'badge-merchant', creator: 'badge-creator',
+  researcher: 'badge-researcher', scout: 'badge-scout', omega: 'badge-omega'
+};
+
+// ── INIT ──
+function init() {
+  backendUrl = localStorage.getItem('j_backend') || '';
+  const name = localStorage.getItem('j_name') || '';
+  const hist = localStorage.getItem('j_hist');
+  if (hist) try { conversationHistory = JSON.parse(hist); } catch(e){}
+
+  if (backendUrl) document.getElementById('backendUrl').value = backendUrl;
+  if (name) document.getElementById('userName').value = name;
+
+  updateServerDisplay();
+  updateAtomStatus();
+
+  if (backendUrl) {
+    pingServer();
+  } else {
+    setTimeout(() => addSys('NO SERVER CONNECTED — TAP SETUP › TO GET STARTED'), 500);
+  }
+}
+
+function updateAtomStatus() {
+  const el = document.getElementById('atomStatus');
+  if (!el) return;
+  el.textContent = backendUrl ? 'CONNECTING TO SERVER...' : 'AWAITING CONNECTION';
+}
+
+function updateServerDisplay() {
+  const display = document.getElementById('serverUrlDisplay');
+  if (display) display.textContent = backendUrl || 'NOT CONNECTED';
+}
+
+async function pingServer() {
+  if (!backendUrl) return;
+  try {
+    const res = await fetch(`${backendUrl}/health`);
+    const data = await res.json();
+    if (data.status === 'ONLINE') {
+      document.getElementById('serverStatusLabel').textContent = 'ONLINE';
+      document.getElementById('serverStatusLabel').className = 'server-online';
+      document.getElementById('onlineDot').style.background = '#4cff8a';
+      document.getElementById('onlineDot').style.boxShadow = '0 0 8px #4cff8a';
+      document.getElementById('atomStatus').textContent = 'ONLINE — ALL AGENTS READY';
+      const name = localStorage.getItem('j_name') || 'operator';
+      setTimeout(() => addJ('jarvis', `Online, ${name}. Grand Regent systems are live. ${data.agents?.length || 6} agents standing by. What do we do today?`), 400);
+    }
+  } catch(e) {
+    document.getElementById('atomStatus').textContent = 'SERVER UNREACHABLE';
+    setTimeout(() => addSys('SERVER UNREACHABLE — CHECK URL IN SETUP ›'), 500);
+  }
+}
+
+// ── SETTINGS ──
+async function saveAndTest() {
+  const url = document.getElementById('backendUrl').value.trim().replace(/\/$/, '');
+  if (!url) return;
+  backendUrl = url;
+  localStorage.setItem('j_backend', url);
+  updateServerDisplay();
+  document.getElementById('serverStatusLabel').textContent = 'TESTING...';
+  document.getElementById('serverStatusLabel').className = 'server-offline';
+  closePanel();
+  addSys(`CONNECTING TO ${url}...`);
+  await pingServer();
+}
+
+function saveIdentity() {
+  const name = document.getElementById('userName').value.trim();
+  if (name) localStorage.setItem('j_name', name);
+  closePanel();
+  addSys('IDENTITY SAVED');
+}
+
+function clearAll() {
+  if (!confirm('Wipe everything?')) return;
+  localStorage.clear();
+  conversationHistory = [];
+  backendUrl = '';
+  document.getElementById('messagesList').innerHTML = '';
+  document.getElementById('atomHero').style.display = 'flex';
+  updateServerDisplay();
+  addSys('ALL DATA CLEARED');
+}
+
+// ── TABS ──
+function switchTab(tab) {
+  ['chat','agents','trades','history'].forEach(t => {
+    document.getElementById('view-' + t).classList.toggle('active', t === tab);
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+  });
+  if (tab === 'agents') loadAgents();
+  if (tab === 'trades') loadTrades();
+  if (tab === 'history') renderHistory();
+}
+
+// ── PANEL ──
+function openPanel() {
+  document.getElementById('sidePanel').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+function closePanel() {
+  document.getElementById('sidePanel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+// ── AGENT SELECT ──
+function selectAgent(agent) {
+  selectedAgent = agent;
+  document.querySelectorAll('.agent-pill').forEach(p => p.classList.remove('selected'));
+  const pill = document.getElementById('pill-' + agent);
+  if (pill) pill.classList.add('selected');
+
+  const hints = {
+    auto: 'Command Jarvis...',
+    jarvis: 'Tell Jarvis what you need...',
+    trader: 'Analyze GBPUSD, Gold signal, market outlook...',
+    merchant: 'Generate Etsy listing, trending products...',
+    creator: 'Write TikTok script, YouTube video idea...',
+    researcher: 'Research trending niches, latest news...',
+    scout: 'Find new income opportunities...',
+    omega: 'Any custom mission...'
+  };
+  document.getElementById('inputBox').placeholder = hints[agent] || 'Command...';
+}
+
+// ── SEND ──
+async function sendMessage() {
+  const inp = document.getElementById('inputBox');
+  const msg = inp.value.trim();
+  if (!msg || isThinking) return;
+  if (!backendUrl) { addSys('NO SERVER — TAP SETUP › FIRST'); return; }
+
+  const hero = document.getElementById('atomHero');
+  if (hero) hero.style.display = 'none';
+
+  addUser(msg);
+  inp.value = ''; inp.style.height = 'auto';
+  isThinking = true;
+  document.getElementById('sendBtn').disabled = true;
+  const tid = addTyping();
+
+  try {
+    const agentToSend = selectedAgent === 'auto' ? 'jarvis' : selectedAgent;
+    const res = await fetch(`${backendUrl}/api/execute`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        command: msg,
+        agent: agentToSend,
+        history: conversationHistory.slice(-10)
+      })
+    });
+
+    if (!res.ok) throw new Error(`Server error: ${res.status}`);
+    const data = await res.json();
+    removeEl(tid);
+
+    const agentName = (data.agent || 'JARVIS').toLowerCase();
+    addJ(agentName, data.response);
+
+    conversationHistory.push({ role:'user', content:msg, time:Date.now() });
+    conversationHistory.push({ role:'assistant', content:data.response, agent:agentName, time:Date.now() });
+    if (conversationHistory.length > 60) conversationHistory = conversationHistory.slice(-60);
+    localStorage.setItem('j_hist', JSON.stringify(conversationHistory));
+
+  } catch(err) {
+    removeEl(tid);
+    addSys(`ERROR: ${err.message}`);
+  }
+
+  isThinking = false;
+  document.getElementById('sendBtn').disabled = false;
+}
+
+// ── LOAD AGENTS ──
+async function loadAgents() {
+  const view = document.getElementById('agentsView');
+  if (!backendUrl) {
+    view.innerHTML = '<div class="empty-state">CONNECT SERVER FIRST</div>';
+    return;
+  }
+  try {
+    const res = await fetch(`${backendUrl}/api/agents`);
+    const data = await res.json();
+    view.innerHTML = '';
+    data.agents.forEach(a => {
+      const statusClass = a.status === 'ACTIVE' ? 's-active' :
+                          a.status === 'PAPER MODE' ? 's-paper' :
+                          a.status === 'STANDBY' ? 's-standby' : 's-locked';
+      const locked = a.status === 'LOCKED';
+      const card = document.createElement('div');
+      card.className = 'agent-card' + (locked ? ' locked' : '');
+      card.innerHTML = `
+        <div>
+          <div class="agent-card-name">${a.name}</div>
+          <div class="agent-card-desc">${a.role}</div>
+        </div>
+        <div class="agent-card-right">
+          <span class="status-pill ${statusClass}">${a.status}</span>
+          ${!locked ? `<button class="chat-agent-btn" onclick="quickChat('${a.name.toLowerCase()}')">CHAT</button>` : ''}
+        </div>
+      `;
+      view.appendChild(card);
+    });
+  } catch(e) {
+    view.innerHTML = '<div class="empty-state">COULD NOT LOAD AGENTS</div>';
+  }
+}
+
+function quickChat(agent) {
+  switchTab('chat');
+  selectAgent(agent);
+  document.getElementById('inputBox').focus();
+}
+
+// ── LOAD TRADES ──
+async function loadTrades() {
+  const view = document.getElementById('tradesView');
+  if (!backendUrl) {
+    view.innerHTML = '<div class="empty-state">CONNECT SERVER FIRST</div>';
+    return;
+  }
+  try {
+    const res = await fetch(`${backendUrl}/api/trades`);
+    const data = await res.json();
+    if (!data.trades || data.trades.length === 0) {
+      view.innerHTML = '<div class="empty-state">NO SIGNALS YET<br>ASK TRADER TO ANALYZE GBPUSD OR GOLD</div>';
+      return;
+    }
+    view.innerHTML = '';
+    data.trades.slice().reverse().forEach(t => {
+      const card = document.createElement('div');
+      card.className = 'trade-card';
+      card.innerHTML = `
+        <div class="trade-header">
+          <span class="trade-mode">${t.mode || 'PAPER'}</span>
+          <span class="trade-time">${new Date(t.timestamp).toLocaleString()}</span>
+        </div>
+        <div class="trade-signal">${esc(t.signal || t.command)}</div>
+      `;
+      view.appendChild(card);
+    });
+  } catch(e) {
+    view.innerHTML = '<div class="empty-state">COULD NOT LOAD TRADES</div>';
+  }
+}
+
+// ── HISTORY ──
+function renderHistory() {
+  const view = document.getElementById('historyView');
+  const pairs = [];
+  for (let i = 0; i < conversationHistory.length - 1; i++) {
+    if (conversationHistory[i].role === 'user' && conversationHistory[i+1].role === 'assistant') {
+      pairs.push({
+        q: conversationHistory[i].content,
+        a: conversationHistory[i+1].content,
+        agent: conversationHistory[i+1].agent || 'jarvis',
+        t: conversationHistory[i].time
+      });
+    }
+  }
+  if (pairs.length === 0) {
+    view.innerHTML = '<div class="empty-state">NO HISTORY YET</div>';
+    return;
+  }
+  view.innerHTML = '';
+  pairs.slice().reverse().forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'history-item';
+    el.innerHTML = `
+      <div class="history-q">${esc(p.q)}</div>
+      <div class="history-a">${esc(p.a.substring(0,90))}...</div>
+      <div class="history-meta">
+        <span class="history-time">${p.t ? new Date(p.t).toLocaleString() : ''}</span>
+        <span class="history-agent">${(p.agent || 'jarvis').toUpperCase()}</span>
+      </div>
+    `;
+    el.onclick = () => {
+      switchTab('chat');
+      selectAgent(p.agent || 'auto');
+      document.getElementById('inputBox').value = p.q;
+    };
+    view.appendChild(el);
+  });
+}
+
+// ── UI HELPERS ──
+function addUser(text) {
+  const el = document.createElement('div');
+  el.className = 'msg-user msg-enter';
+  el.innerHTML = `<div class="msg-user-bubble">${esc(text)}</div>`;
+  document.getElementById('messagesList').appendChild(el);
+  scrollDown();
+}
+
+function addJ(agent, text) {
+  const el = document.createElement('div');
+  el.className = 'msg-j msg-enter';
+  const badgeClass = AGENT_COLORS[agent] || 'badge-jarvis';
+  el.innerHTML = `
+    <div class="j-dot">J</div>
+    <div class="j-content">
+      <div class="agent-badge ${badgeClass}">${agent.toUpperCase()}</div>
+      <div class="j-bubble">${fmt(text)}</div>
+    </div>
+  `;
+  document.getElementById('messagesList').appendChild(el);
+  scrollDown();
+}
+
+function addSys(text) {
+  const el = document.createElement('div');
+  el.className = 'msg-sys msg-enter';
+  el.textContent = '// ' + text;
+  document.getElementById('messagesList').appendChild(el);
+  scrollDown();
+}
+
+let tc = 0;
+function addTyping() {
+  const id = 'tp' + (++tc);
+  const el = document.createElement('div');
+  el.className = 'msg-j msg-enter'; el.id = id;
+  el.innerHTML = `<div class="j-dot">J</div><div class="j-content"><div class="j-bubble"><div class="typing-dots"><div class="td"></div><div class="td"></div><div class="td"></div></div></div></div>`;
+  document.getElementById('messagesList').appendChild(el);
+  scrollDown();
+  return id;
+}
+
+function removeEl(id) { const e = document.getElementById(id); if(e) e.remove(); }
+
+function fmt(text) {
+  let h = esc(text);
+  h = h.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  h = h.replace(/`([^`]+)`/g, '<code>$1</code>');
+  h = h.replace(/^#{1,3} (.+)/gm, '<strong style="color:var(--blue);display:block;margin-top:6px;">$1</strong>');
+  h = h.replace(/^[-•] (.+)/gm, '<span style="color:#333">›</span> $1');
+  h = h.replace(/\n\n/g, '<br><br>');
+  h = h.replace(/\n/g, '<br>');
+  return h;
+}
+
+function esc(t) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(t));
+  return d.innerHTML;
+}
+
+function scrollDown() {
+  const cb = document.getElementById('chatBody');
+  setTimeout(() => cb.scrollTop = cb.scrollHeight, 60);
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 90) + 'px';
+}
+
+init();
+</script>
+</body>
+</html>
